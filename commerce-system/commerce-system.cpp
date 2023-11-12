@@ -125,8 +125,46 @@ public:
     }
 };
 
+class Clothing : public Product {
+    string size;
+    string color;
+    string material;
+
+public:
+
+    Clothing(const int id, const string name, const int price, const int quantity,
+        const string size, const string color, const string material)
+        : Product(id, name, price, quantity), size(size), color(color),
+        material(material) {}
+
+    string getSize() const {
+        return this->size;
+    }
+
+    string getColor() const {
+        return this->color;
+    }
+
+    string getMaterial() const {
+        return this->material;
+    }
+
+    // Copy constructor
+    Clothing(const Clothing& other)
+        : Product(other), size(other.size), color(other.color),
+        material(other.material) {}
+
+    // Move constructor
+    Clothing(Clothing&& other) noexcept
+        : Product(move(other)), size(move(other.size)),
+        color(move(other.color)), material(move(other.material)) {
+        other.size = "";
+        other.color = "";
+        other.material = "";
+    }
+};
+
 int main()
 {
-    
     return 0;
 }
