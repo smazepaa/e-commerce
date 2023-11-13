@@ -1,7 +1,10 @@
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <vector>
+#include <string>
 
 using namespace std;
-
 
 class Product {
 
@@ -22,12 +25,24 @@ public:
         return this->name;
     }
 
-    int getPrice() const {
+    int getPrice() const {s
         return this->price;
     }
 
     int getQuantity() const {
         return this->quantityInStock;
+    }
+
+    void updateName(const string newName) {
+        this->name = newName;
+    }
+
+    void updatePrice(const int newPrice) {
+        this->price = newPrice;
+    }
+
+    void updateQuantity(const string newQuantity) {
+        this->quantityInStock = newQuantity;
     }
 
     // Copy constructor
@@ -71,6 +86,18 @@ public:
         return this->powerConsumption;
     }
 
+    void updateBrand(const string newBrand) {
+        this->brand = newBrand;
+    }
+
+    void updateModel(const string newModel) {
+        this->model = newModel;
+    }
+
+    void updateConsumption(const string newConsumption) {
+        this->powerConsumption = newConsumption;
+    }
+
     // Copy constructor
     Electronics(const Electronics& other)
         : Product(other), brand(other.brand), model(other.model), 
@@ -108,6 +135,18 @@ public:
 
     string getISBN() const {
         return this->isbn;
+    }
+
+    void updateAuthor(const string newAuthor) {
+        this->author = newAuthor;
+    }
+
+    void updateGenre(const string newGenre) {
+        this->genre = newGenre;
+    }
+
+    void updateISBN(const string newISBN) {
+        this->isbn = newISBN;
     }
 
     // Copy constructor
@@ -149,6 +188,18 @@ public:
         return this->material;
     }
 
+    void updateSize(const string newSize) {
+        this->size = newSize;
+    }
+
+    void updateColor(const string newColor) {
+        this->color = newColor;
+    }
+
+    void updateMaterial(const string newMaterial) {
+        this->material = newMaterial;
+    }
+
     // Copy constructor
     Clothing(const Clothing& other)
         : Product(other), size(other.size), color(other.color),
@@ -162,6 +213,27 @@ public:
         other.color = "";
         other.material = "";
     }
+};
+
+class ProductCatalog {
+
+    vector<Product> productList;
+
+public:
+
+    vector<Product> getProducts() const {
+        return this->productList;
+    }
+
+    void addProduct(const Product& product) {
+        productList.push_back(product);
+    }
+};
+
+class ConfigReader {
+
+    string filename = "config-input.txt";
+
 };
 
 int main()
