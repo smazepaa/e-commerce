@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -440,11 +441,56 @@ public:
     }
 };
 
+class Order {
+    int orderID;
+    string customer;
+    map<Product*, int> products;
+    double totalCost;
+    string orderStatus;
+
+public:
+    Order(const int id, const string customer)
+        : orderID(id), customer(customer), totalCost(0.0), orderStatus("Pending") {}
+
+    void addProduct(Product* product, int quantity) {
+        if (product == nullptr) {
+            throw std::invalid_argument("Product pointer cannot be null.");
+        }
+
+        bool found = false;
+        for (auto& item : products) {
+            if (item.first == product) {
+                // The product already exists in the map, so increment its quantity
+                item.second += quantity;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            // The product does not exist in the map, so add it
+            products[product] = quantity;
+        }
+
+        // Update the total cost
+        totalCost += product->getPrice() * quantity;
+    }
+
+
+    double calculateTotalCost() const {
+        return this->totalCost;
+    }
+
+    void changeOrderStatus(const string newStatus) {
+        this->orderStatus = newStatus;
+    }
+};
+
 
 int main()
 {
     ProductCatalog catalog;
-    catalog.viewProducts();
+    //catalog.viewProducts();
 
     /*catalog.updateProduct(1, "name", "100000W");
     catalog.removeProduct(2);
@@ -452,6 +498,15 @@ int main()
         10.89, 10, "brand", "model", "consumption");
     catalog.addProduct(electronic);
     catalog.viewProducts();*/
+
+    vector<Product*> prods = catalog.getProducts();
+
+    Order order1(1, "Customer 1");
+    order1.addProduct(prods[0], 2);
+    order1.addProduct(prods[1], 1);
+    order1.addProduct(prods[0], 1);
+
+    cout << "Total cost: " << order1.calculateTotalCost() << endl;
 
     return 0;
 }
