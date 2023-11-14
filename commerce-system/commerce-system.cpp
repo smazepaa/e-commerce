@@ -450,7 +450,7 @@ class Order {
 
 public:
     Order(const int id)
-        : orderID(id), totalCost(0.0), orderStatus("Pending") {}
+        : orderID(id), totalCost(0.0), orderStatus("Created") {}
 
     void addProduct(Product* product, int quantity) {
         bool found = false;
@@ -546,6 +546,7 @@ public:
         ProductCatalog catalog(products);
         map<Product*, int> cart;
         int orderId = 1234;
+        vector<Order> orders;
 
         while (true) {
             string inputline;
@@ -609,9 +610,16 @@ public:
                     continue;
                 }
 
-                Order order1(orderId, cart);
+                Order order1(orderId);
+                for (const auto& pair : cart) {
+                    order1.addProduct(pair.first, pair.second);
+                    inventory.removeQuantity(pair.first->getId(), pair.second);
+                }
+                
+                orderId++;
                 cout << "order created, total: " << order1.calculateTotalCost() << endl;
-
+                orders.push_back(order1);
+                cart.clear();
             }
 
         }
