@@ -10,12 +10,14 @@ class Product {
 
     int productId;
     string name;
-    int price;
+    double price;
     int quantityInStock;
 
 public:
-    Product(const int id, const string name, const int price, const int quantity)
+    Product(const int id, const string name, const double price, const int quantity)
         : productId(id), name(name), price(price), quantityInStock(quantity){}
+
+    virtual ~Product() {}  // Add a virtual destructor
 
     int getId() const {
         return this->productId;
@@ -25,7 +27,7 @@ public:
         return this->name;
     }
 
-    int getPrice() const {
+    double getPrice() const {
         return this->price;
     }
 
@@ -37,7 +39,7 @@ public:
         this->name = newName;
     }
 
-    void updatePrice(const int newPrice) {
+    void updatePrice(const double newPrice) {
         this->price = newPrice;
     }
 
@@ -69,7 +71,7 @@ class Electronics : public Product {
 
 public:
 
-    Electronics(const int id, const string name, const int price, const int quantity, 
+    Electronics(const int id, const string name, const double price, const int quantity,
         const string brand, const string model, const string powerConsumption)
         : Product(id, name, price, quantity), brand(brand), model(model), 
         powerConsumption(powerConsumption) {}
@@ -120,7 +122,7 @@ class Books : public Product {
 
 public:
 
-    Books(const int id, const string name, const int price, const int quantity,
+    Books(const int id, const string name, const double price, const int quantity,
         const string author, const string genre, const string isbn)
         : Product(id, name, price, quantity), author(author), genre(genre),
         isbn(isbn) {}
@@ -171,7 +173,7 @@ class Clothing : public Product {
 
 public:
 
-    Clothing(const int id, const string name, const int price, const int quantity,
+    Clothing(const int id, const string name, const double price, const int quantity,
         const string size, const string color, const string material)
         : Product(id, name, price, quantity), size(size), color(color),
         material(material) {}
@@ -247,15 +249,16 @@ class ConfigReader {
 
 public:
 
-    void readConfig() {
+    vector<Product*> readConfig() {
 
-        vector<Product> products;
+        vector<Product*> products;
         ifstream file(filename);
         string line;
+        int id = 1;
 
         if (!file.is_open()) {
             cout << "Unable to open file" << '\n';
-            //return products;
+            return products;
         }
 
         while (getline(file, line)) {
@@ -272,20 +275,56 @@ public:
 
             string type = words[0]; // Electronics
             string name = words[1]; // Laptop
-            int price = stoi(words[2]); // 799.99
+            double price = stod(words[2]); // 799.99
             int quantity = stoi(words[3]); // 10
             
             additional.assign(words.begin() + 4, words.end());
 
             // Print the 'additional' vector
-            for (const auto& word : additional) {
+            /*for (const auto& word : additional) {
                 cout << word << '\n';
+            }*/
+
+            if (type == "Electronics") {
+                string brand = additional[0];
+                string model = additional[1];
+                string consumption = additional[2];
+
+                Electronics* electronic = new Electronics(id, name,
+                    price, quantity, brand, model, consumption);
+                products.push_back(electronic);
+                id++;
             }
 
+            else if (type == "Books") {
+                string author = additional[0];
+                string genre = additional[1];
+                string isbn = additional[2];
+
+                Books* book = new Books(id, name, price, quantity, author, genre, isbn);
+                products.push_back(book);
+                id++;
+            }
+
+            else if (type == "Clothing") {
+                string size = additional[0];
+                string color = additional[1];
+                string material = additional[2];
+
+                Clothing* cloth = new Clothing(id, name,
+                    price, quantity, size, color, material);
+                products.push_back(cloth);
+                id++;
+            }
+
+            else {
+                cout << "Invalid product type";
+            }
             
         }
 
         file.close();
+        return products;
     }
 
     
@@ -294,6 +333,21 @@ public:
 int main()
 {
     ConfigReader reader;
-    reader.readConfig();
+    vector<Product*> products = reader.readConfig();
+
+    cout << "products list created" << endl;
+
+    Product* product = products[0];  // Get the i-th product
+    Electronics* electronics = dynamic_cast<Electronics*>(product);
+    if (electronics != nullptr) {
+        // The product is an Electronics, so you can use Electronics methods on it
+        cout << "Brand: " << electronics->getBrand() << endl;
+    }
+    else {
+        // The product is not an Electronics
+        cout << "The product is not an Electronics object." << endl;
+    }
+
+
     return 0;
 }
