@@ -310,7 +310,6 @@ public:
 
 class ProductCatalog {
 
-    ConfigReader reader;
     vector<Product*> productList;
 
 public:
@@ -397,7 +396,6 @@ public:
         cout << "Product not found." << '\n';
     }
 
-
     void removeProduct(int id) {
         for (auto it = productList.begin(); it != productList.end(); ++it) {
             if ((*it)->getId() == id) {
@@ -445,14 +443,14 @@ public:
 
 class Order {
     int orderID;
-    string customer;
+    //string customer;
     map<Product*, int> products;
     double totalCost;
     string orderStatus;
 
 public:
-    Order(const int id, const string customer)
-        : orderID(id), customer(customer), totalCost(0.0), orderStatus("Pending") {}
+    Order(const int id)
+        : orderID(id), totalCost(0.0), orderStatus("Pending") {}
 
     void addProduct(Product* product, int quantity) {
         bool found = false;
@@ -505,15 +503,8 @@ public:
     void removeQuantity(int id, int quantity) {
         for (Product* product : products) {
             if (product->getId() == id) {
-                int currentQuantity = product->getQuantity();
-                if (currentQuantity >= quantity) {
-                    product->updateQuantity(currentQuantity - quantity);
-                    return;
-                }
-                else {
-                    cout << "Not enough stock available." << endl;
-                    return;
-                }
+                product->updateQuantity(product->getQuantity() - quantity);
+                return;
             }
         }
         cout << "Product not found." << endl;
@@ -538,12 +529,100 @@ public:
             }
         }
     }
+};
 
+
+class InputConfig {
+    ConfigReader reader;
+    vector<Product*> products;
+
+public:
+    InputConfig() {}
+
+    void processInput() {
+
+        products = reader.readConfig();
+        Inventory inventory(products);
+        ProductCatalog catalog(products);
+        map<Product*, int> cart;
+        int orderId = 1234;
+
+        while (true) {
+            string inputline;
+            
+            cout << "Enter command" << endl << "> ";
+            getline(cin, inputline);
+
+            istringstream iss(inputline);
+            string word;
+            vector<string> inputParams;
+            while (iss >> word) {
+                inputParams.push_back(word);
+            }
+
+            if (inputParams.size() == 0) {
+                cout << "Cannot enter empty input" << endl;
+                continue;
+            }
+
+            string command = inputParams[0];
+
+            if (command == "show") {
+                if (inputParams[1] == "all") {
+                    catalog.viewProducts();
+                }
+            }
+
+            else if (command == "add") {
+                string prod;
+                cout << "Enter product ID and quantity: ";
+                getline(cin, prod);
+
+                istringstream iss(prod);
+                string prodInfo;
+                vector<string> toCart;
+                while (iss >> prodInfo) {
+                    toCart.push_back(prodInfo);
+                }
+
+                int id = stoi(toCart[0]);
+                int quantity = stoi(toCart[1]);
+
+                for (Product* product : products) {
+                    if (product->getId() == id) {
+                        if (product->getQuantity() >= quantity) {
+                            // inventory.removeQuantity(id, quantity);
+                            cart[product] = quantity;
+                            cout << "product added to cart" << endl;
+                        }
+                        else {
+                            cout << "not enough product in stock" << endl;
+                        }
+                        
+                    }
+                }
+            }
+
+            else if (command == "checkout") {
+                if (cart.size() == 0) {
+                    cout << "Your cart is empty" << endl;
+                    continue;
+                }
+
+                Order order1(orderId, cart);
+                cout << "order created, total: " << order1.calculateTotalCost() << endl;
+
+            }
+
+        }
+    }
 };
 
 
 int main()
 {
+    InputConfig config;
+    config.processInput();
     /*ProductCatalog catalog;
 
     vector<Product*> prods = catalog.getProducts();
