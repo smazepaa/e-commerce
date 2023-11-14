@@ -217,21 +217,6 @@ public:
     }
 };
 
-class ProductCatalog {
-
-    vector<Product> productList;
-
-public:
-
-    vector<Product> getProducts() const {
-        return this->productList;
-    }
-
-    void addProduct(const Product& product) {
-        productList.push_back(product);
-    }
-};
-
 class ConfigReader {
 
     string filename = "config-input.txt";
@@ -273,17 +258,12 @@ public:
                 words.push_back(word);
             }
 
-            string type = words[0]; // Electronics
-            string name = words[1]; // Laptop
-            double price = stod(words[2]); // 799.99
-            int quantity = stoi(words[3]); // 10
-            
-            additional.assign(words.begin() + 4, words.end());
+            string type = words[0];
+            string name = words[1];
+            double price = stod(words[2]);
+            int quantity = stoi(words[3]);
 
-            // Print the 'additional' vector
-            /*for (const auto& word : additional) {
-                cout << word << '\n';
-            }*/
+            additional.assign(words.begin() + 4, words.end());
 
             if (type == "Electronics") {
                 string brand = additional[0];
@@ -320,34 +300,158 @@ public:
             else {
                 cout << "Invalid product type";
             }
-            
-        }
 
+        }
         file.close();
         return products;
     }
-
-    
 };
+
+class ProductCatalog {
+
+    ConfigReader reader;
+    vector<Product*> productList = reader.readConfig();
+
+public:
+
+    vector<Product*> getProducts() const {
+        return this->productList;
+    }
+
+    void addProduct(Product* product) {
+        productList.push_back(product);
+    }
+
+    void updateProduct(int id, string attribute, string newValue) {
+        for (auto& product : productList) {
+            if (product->getId() == id) {
+                if (attribute == "name") {
+                    product->updateName(newValue);
+                }
+                else if (attribute == "price") {
+                    double newPrice = stod(newValue);
+                    product->updatePrice(newPrice);
+                }
+                else if (attribute == "quantity") {
+                    int newQuantity = stoi(newValue);
+                    product->updateQuantity(newQuantity);
+                }
+                else {
+                    // Handle attributes specific to Electronics
+                    Electronics* electronics = dynamic_cast<Electronics*>(product);
+                    if (electronics != nullptr) {
+                        if (attribute == "brand") {
+                            electronics->updateBrand(newValue);
+                        }
+                        else if (attribute == "model") {
+                            electronics->updateModel(newValue);
+                        }
+                        else if (attribute == "consumption") {
+                            electronics->updateConsumption(newValue);
+                        }
+                        else {
+                            cout << "Invalid attribute for Electronics" << endl;
+                        }
+                    }
+
+                    // Handle attributes specific to Books
+                    Books* book = dynamic_cast<Books*>(product);
+                    if (book != nullptr) {
+                        if (attribute == "author") {
+                            book->updateAuthor(newValue);
+                        }
+                        else if (attribute == "genre") {
+                            book->updateGenre(newValue);
+                        }
+                        else if (attribute == "ISBN") {
+                            book->updateISBN(newValue);
+                        }
+                        else {
+                            cout << "Invalid attribute for Books" << endl;
+                        }
+                    }
+
+                    // Handle attributes specific to Clothing
+                    Clothing* clothing = dynamic_cast<Clothing*>(product);
+                    if (clothing != nullptr) {
+                        if (attribute == "size") {
+                            clothing->updateSize(newValue);
+                        }
+                        else if (attribute == "color") {
+                            clothing->updateColor(newValue);
+                        }
+                        else if (attribute == "material") {
+                            clothing->updateMaterial(newValue);
+                        }
+                        else {
+                            cout << "Invalid attribute for Clothing" << endl;
+                        }
+                    }
+                }
+                return;
+            }
+        }
+        cout << "Product not found." << '\n';
+    }
+
+
+    void removeProduct(int id) {
+        for (auto it = productList.begin(); it != productList.end(); ++it) {
+            if ((*it)->getId() == id) {
+                delete* it;  // Delete the product
+                productList.erase(it);  // Remove the pointer from the vector
+                return;
+            }
+        }
+        cout << "Product not found." << endl;
+    }
+
+    void viewProducts() const {
+        for (const auto& product : productList) {
+            cout << "ID: " << product->getId() << endl;
+            cout << "Name: " << product->getName() << endl;
+            cout << "Price: " << product->getPrice() << endl;
+            cout << "In stock: " << product->getQuantity() << endl;
+            cout << "Additional attributes:" << endl;
+            
+            Electronics* electronics = dynamic_cast<Electronics*>(product);
+            if (electronics != nullptr) {
+                cout << "Brand: " << electronics->getBrand() << endl;
+                cout << "Model: " << electronics->getModel() << endl;
+                cout << "Power Consumption: " << electronics->getConsumption() << endl;
+            }
+
+            Books* book = dynamic_cast<Books*>(product);
+            if (book != nullptr) {
+                cout << "Author: " << book->getAuthor() << endl;
+                cout << "Genre: " << book->getGenre() << endl;
+                cout << "ISBN: " << book->getISBN() << endl;
+            }
+
+            // Handle attributes specific to Clothing
+            Clothing* clothing = dynamic_cast<Clothing*>(product);
+            if (clothing != nullptr) {
+                cout << "Size: " << clothing->getSize() << endl;
+                cout << "Color: " << clothing->getColor() << endl;
+                cout << "Material: " << clothing->getMaterial() << endl;
+            }
+            cout << endl;
+        }
+    }
+};
+
 
 int main()
 {
-    ConfigReader reader;
-    vector<Product*> products = reader.readConfig();
+    ProductCatalog catalog;
+    catalog.viewProducts();
 
-    cout << "products list created" << endl;
-
-    Product* product = products[0];  // Get the i-th product
-    Electronics* electronics = dynamic_cast<Electronics*>(product);
-    if (electronics != nullptr) {
-        // The product is an Electronics, so you can use Electronics methods on it
-        cout << "Brand: " << electronics->getBrand() << endl;
-    }
-    else {
-        // The product is not an Electronics
-        cout << "The product is not an Electronics object." << endl;
-    }
-
+    /*catalog.updateProduct(1, "name", "100000W");
+    catalog.removeProduct(2);
+    Electronics* electronic = new Electronics(10, "blabla",
+        10.89, 10, "brand", "model", "consumption");
+    catalog.addProduct(electronic);
+    catalog.viewProducts();*/
 
     return 0;
 }
