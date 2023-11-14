@@ -479,6 +479,17 @@ public:
     void changeOrderStatus(const string newStatus) {
         this->orderStatus = newStatus;
     }
+
+    void viewOrder() const {
+
+        cout << "Order no. " << orderID << endl;
+        for (auto& item : products) {
+            cout << item.first->getId() << " - " << item.first->getName() << endl
+                << "qty: " << item.second << " x " << item.first->getPrice() << endl;
+        }
+
+        cout << "Total: " << this->totalCost << endl << endl;
+    }
 };
 
 class Inventory {
@@ -620,6 +631,12 @@ public:
                 cout << "order created, total: " << order1.calculateTotalCost() << endl;
                 orders.push_back(order1);
                 cart.clear();
+            }
+
+            else if (command == "history") {
+                for (const Order order : orders) {
+                    order.viewOrder();
+                }
             }
 
         }
