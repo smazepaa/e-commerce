@@ -25,7 +25,7 @@ public:
         return this->name;
     }
 
-    int getPrice() const {s
+    int getPrice() const {
         return this->price;
     }
 
@@ -41,7 +41,7 @@ public:
         this->price = newPrice;
     }
 
-    void updateQuantity(const string newQuantity) {
+    void updateQuantity(const int newQuantity) {
         this->quantityInStock = newQuantity;
     }
 
@@ -234,9 +234,66 @@ class ConfigReader {
 
     string filename = "config-input.txt";
 
+    string trim(const string& str)
+    {
+        size_t first = str.find_first_not_of(' ');
+        if (string::npos == first)
+        {
+            return str;
+        }
+        size_t last = str.find_last_not_of(' ');
+        return str.substr(first, (last - first + 1));
+    }
+
+public:
+
+    void readConfig() {
+
+        vector<Product> products;
+        ifstream file(filename);
+        string line;
+
+        if (!file.is_open()) {
+            cout << "Unable to open file" << '\n';
+            //return products;
+        }
+
+        while (getline(file, line)) {
+
+            istringstream iss(line);
+            vector<string> words;
+            string word;
+            vector<string> additional;
+
+            while (getline(iss, word, ',')) {
+                trim(word);
+                words.push_back(word);
+            }
+
+            string type = words[0]; // Electronics
+            string name = words[1]; // Laptop
+            int price = stoi(words[2]); // 799.99
+            int quantity = stoi(words[3]); // 10
+            
+            additional.assign(words.begin() + 4, words.end());
+
+            // Print the 'additional' vector
+            for (const auto& word : additional) {
+                cout << word << '\n';
+            }
+
+            
+        }
+
+        file.close();
+    }
+
+    
 };
 
 int main()
 {
+    ConfigReader reader;
+    reader.readConfig();
     return 0;
 }
