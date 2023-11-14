@@ -311,9 +311,11 @@ public:
 class ProductCatalog {
 
     ConfigReader reader;
-    vector<Product*> productList = reader.readConfig();
+    vector<Product*> productList;
 
 public:
+
+    ProductCatalog(vector<Product*>& products) : productList(products) {}
 
     vector<Product*> getProducts() const {
         return this->productList;
@@ -453,10 +455,6 @@ public:
         : orderID(id), customer(customer), totalCost(0.0), orderStatus("Pending") {}
 
     void addProduct(Product* product, int quantity) {
-        if (product == nullptr) {
-            throw std::invalid_argument("Product pointer cannot be null.");
-        }
-
         bool found = false;
         for (auto& item : products) {
             if (item.first == product) {
@@ -476,7 +474,6 @@ public:
         totalCost += product->getPrice() * quantity;
     }
 
-
     double calculateTotalCost() const {
         return this->totalCost;
     }
@@ -486,18 +483,68 @@ public:
     }
 };
 
+class Inventory {
+
+    int lowStockThreshold = 5;
+    vector<Product*> products;
+
+public:
+
+    Inventory(vector<Product*>& productList): products(productList){}
+
+    void addQuantity(int id, int quantity) {
+        for (Product* product : products) {
+            if (product->getId() == id) {
+                product->updateQuantity(product->getQuantity() + quantity);
+                return;
+            }
+        }
+        cout << "Product not found." << endl;
+    }
+
+    void removeQuantity(int id, int quantity) {
+        for (Product* product : products) {
+            if (product->getId() == id) {
+                int currentQuantity = product->getQuantity();
+                if (currentQuantity >= quantity) {
+                    product->updateQuantity(currentQuantity - quantity);
+                    return;
+                }
+                else {
+                    cout << "Not enough stock available." << endl;
+                    return;
+                }
+            }
+        }
+        cout << "Product not found." << endl;
+    }
+
+    void notifyLowStock() const {
+        cout << "Products with low stock:" << endl;
+        for (const Product* product : products) {
+            if (product->getQuantity() < lowStockThreshold) {
+                cout << "Product ID: " << product->getId() << ", Name: " << product->getName()
+                    << ", Current Stock: " << product->getQuantity() << endl;
+            }
+        }
+    }
+
+    void getProductsToRestock() const {
+        cout << "Products that need restock:" << endl;
+        for (const Product* product : products) {
+            if (product->getQuantity() == 0) {
+                cout << "Product ID: " << product->getId() << 
+                    ", Name: " << product->getName() << endl;
+            }
+        }
+    }
+
+};
+
 
 int main()
 {
-    ProductCatalog catalog;
-    //catalog.viewProducts();
-
-    /*catalog.updateProduct(1, "name", "100000W");
-    catalog.removeProduct(2);
-    Electronics* electronic = new Electronics(10, "blabla",
-        10.89, 10, "brand", "model", "consumption");
-    catalog.addProduct(electronic);
-    catalog.viewProducts();*/
+    /*ProductCatalog catalog;
 
     vector<Product*> prods = catalog.getProducts();
 
@@ -506,7 +553,7 @@ int main()
     order1.addProduct(prods[1], 1);
     order1.addProduct(prods[0], 1);
 
-    cout << "Total cost: " << order1.calculateTotalCost() << endl;
+    cout << "Total cost: " << order1.calculateTotalCost() << endl;*/
 
     return 0;
 }
