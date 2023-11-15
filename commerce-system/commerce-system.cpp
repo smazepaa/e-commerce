@@ -437,20 +437,19 @@ public:
 
 class Order {
     int orderID;
-    //string customer;
+    string customer;
     map<Product*, int> products;
     double totalCost;
     string orderStatus;
 
 public:
-    Order(const int id)
-        : orderID(id), totalCost(0.0), orderStatus("Created") {}
+    Order(const int id, const string customer)
+        : orderID(id), customer(customer), totalCost(0.0), orderStatus("Created") {}
 
     void addProduct(Product* product, int quantity) {
         bool found = false;
         for (auto& item : products) {
             if (item.first == product) {
-                // The product already exists in the map, so increment its quantity
                 item.second += quantity;
                 found = true;
                 break;
@@ -458,11 +457,8 @@ public:
         }
 
         if (!found) {
-            // The product does not exist in the map, so add it
             products[product] = quantity;
         }
-
-        // Update the total cost
         totalCost += product->getPrice() * quantity;
     }
 
@@ -476,7 +472,8 @@ public:
 
     void viewOrder() const {
 
-        cout << "Order no. " << orderID << endl;
+        cout << "Order no. " << this->orderID << endl << "Customer: " << this->customer << endl;
+
         for (auto& item : products) {
             cout << item.first->getId() << " - " << item.first->getName() << endl
                 << "qty: " << item.second << " x " << item.first->getPrice() << endl;
@@ -539,6 +536,163 @@ public:
 class InputConfig {
     ConfigReader reader;
     vector<Product*> products;
+    vector<Order> orders;
+    map<Product*, int> cart;
+    int orderId = 1234;
+
+    void showFiltered(vector<string>& inputParams) {
+
+        vector<Product*> filtered;
+        string type = inputParams[1];
+        vector<string> filterParams;
+        filterParams.assign(inputParams.begin() + 2, inputParams.end());
+        for (const auto& product : products) {
+            if (type == "Electronics") {
+                Electronics* electronics = dynamic_cast<Electronics*>(product);
+                if (electronics != nullptr) {
+                    for (const auto& attribute : filterParams) {
+                        if (electronics->getName() == attribute ||
+                            electronics->getBrand() == attribute ||
+                            electronics->getModel() == attribute ||
+                            electronics->getConsumption() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (type == "Books") {
+                Books* books = dynamic_cast<Books*>(product);
+                if (books != nullptr) {
+                    for (const auto& attribute : filterParams) {
+                        if (books->getName() == attribute ||
+                            books->getAuthor() == attribute ||
+                            books->getGenre() == attribute ||
+                            books->getISBN() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (type == "Clothing") {
+                Clothing* clothing = dynamic_cast<Clothing*>(product);
+                if (clothing != nullptr) {
+                    for (const auto& attribute : filterParams) {
+                        if (clothing->getName() == attribute ||
+                            clothing->getMaterial() == attribute ||
+                            clothing->getColor() == attribute ||
+                            clothing->getSize() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                cout << "Invalid product type." << endl;
+            }
+        }
+
+        if (filtered.size() == 0) {
+            cout << "There is no product corresponding to your parameters."
+                << endl;
+            return;
+        }
+        cout << "The products that meet your parameters:" << endl;
+        for (auto& product : filtered) {
+            product->displayDetails();
+            cout << endl;
+        }
+    }
+
+    void addToCart() {
+        string prod;
+        cout << "Enter product ID and quantity: ";
+        getline(cin, prod);
+
+        if (prod == "") {
+            cout << "Cannot enter empty input" << endl << endl;
+            return;
+        }
+
+        istringstream iss(prod);
+        string prodInfo;
+        vector<string> toCart;
+        while (iss >> prodInfo) {
+            toCart.push_back(prodInfo);
+        }
+        
+        if (toCart.size() != 2) {
+            cout << "The command takes 2 parameters" << endl << endl;
+            return;
+        }
+
+        int id = stoi(toCart[0]);
+        int quantity = stoi(toCart[1]);
+
+        bool prodExists = false;
+        for (Product* product : products) {
+            if (product->getId() == id) {
+                if (product->getQuantity() >= quantity) {
+                    cart[product] = quantity;
+                    prodExists = true;
+                    cout << "Product was added to cart" << endl << endl;
+                    return;
+                }
+                else {
+                    cout << "Not enough product in stock" << endl << endl;
+                    return;
+                }
+
+            }
+        }
+
+        if (!prodExists) {
+            cout << "There is no product with the given ID" << endl;
+            return;
+        }
+    }
+
+    void createOrder(Inventory& inventory) {
+        string customer;
+
+        cout << "Enter your name: ";
+        getline(cin, customer);
+        Order order1(orderId, customer);
+        for (const auto& pair : cart) {
+            order1.addProduct(pair.first, pair.second);
+            inventory.removeQuantity(pair.first->getId(), pair.second);
+        }
+
+        cout << "Order created" << endl << "Order No. " << orderId << endl <<
+            "Customer: " << customer <<
+            endl << "Total: " << order1.calculateTotalCost() << endl << endl;
+        orderId++;
+        orders.push_back(order1);
+        cart.clear();
+    }
+
+    void chechout(Inventory& inventory) {
+        if (cart.size() == 0) {
+            cout << "Your cart is empty" << endl << endl;
+            return;
+        }
+
+        cout << "Your cart:" << endl;
+        for (auto& item : cart) {
+            cout << item.first->getName() << " "
+                << item.second << " x " << item.first->getPrice() << endl;
+        }
+
+        string confirm;
+        cout << endl << "Do you want to place an order?[y/n] ";
+        getline(cin, confirm);
+
+        if (confirm == "y") {
+            createOrder(inventory);
+        }
+    }
 
 public:
     InputConfig() {}
@@ -548,14 +702,11 @@ public:
         products = reader.readConfig();
         Inventory inventory(products);
         ProductCatalog catalog(products);
-        map<Product*, int> cart;
-        int orderId = 1234;
-        vector<Order> orders;
 
         while (true) {
             string inputline;
             
-            cout << "Enter command" << endl << "> ";
+            cout << "> ";
             getline(cin, inputline);
 
             istringstream iss(inputline);
@@ -574,133 +725,39 @@ public:
             vector<string> filters;
 
             if (command == "show") {
-                if (inputParams[1] == "all") {
+
+                if (inputParams.size() == 1) {
+                    cout << "Cannot proceed with invalid input" << endl;
+                    continue;
+                }
+
+                else if (inputParams[1] == "all") {
                     catalog.viewProducts();
                 }
                 else {
                     showFiltered(inputParams);
                 }
             }
-
-            else if (command == "add") {
-                string prod;
-                cout << "Enter product ID and quantity: ";
-                getline(cin, prod);
-
-                istringstream iss(prod);
-                string prodInfo;
-                vector<string> toCart;
-                while (iss >> prodInfo) {
-                    toCart.push_back(prodInfo);
-                }
-
-                int id = stoi(toCart[0]);
-                int quantity = stoi(toCart[1]);
-
-                for (Product* product : products) {
-                    if (product->getId() == id) {
-                        if (product->getQuantity() >= quantity) {
-                            // inventory.removeQuantity(id, quantity);
-                            cart[product] = quantity;
-                            cout << "product added to cart" << endl;
-                        }
-                        else {
-                            cout << "not enough product in stock" << endl;
-                        }
-                        
-                    }
-                }
+            else if (inputline == "add to cart") {
+                addToCart();
             }
-
             else if (command == "checkout") {
-                if (cart.size() == 0) {
-                    cout << "Your cart is empty" << endl;
-                    continue;
-                }
-
-                cout << "Your cart:" << endl;
-
-                Order order1(orderId);
-                for (const auto& pair : cart) {
-                    order1.addProduct(pair.first, pair.second);
-                    inventory.removeQuantity(pair.first->getId(), pair.second);
-                }
-                
-                orderId++;
-                cout << "Order created. Order No. " << orderId <<
-                    endl << "total: " << order1.calculateTotalCost() << endl;
-                orders.push_back(order1);
-                cart.clear();
+                chechout(inventory);
             }
-
             else if (command == "history") {
                 for (const Order order : orders) {
                     order.viewOrder();
                 }
             }
-
-        }
-    }
-
-    void showFiltered(vector<string>& inputParams) {
-
-        vector<Product*> filtered;
-        string type = inputParams[1];
-        for (const auto& product : products) {
-            if (type == "Electronics") {
-                Electronics* electronics = dynamic_cast<Electronics*>(product);
-                if (electronics != nullptr) {
-                    for (const auto& attribute : inputParams) {
-                        if (electronics->getBrand() == attribute ||
-                            electronics->getModel() == attribute ||
-                            electronics->getConsumption() == attribute) {
-                            filtered.push_back(product);
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (type == "Books") {
-                Books* books = dynamic_cast<Books*>(product);
-                if (books != nullptr) {
-                    for (const auto& attribute : inputParams) {
-                        if (books->getAuthor() == attribute ||
-                            books->getGenre() == attribute ||
-                            books->getISBN() == attribute) {
-                            filtered.push_back(product);
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (type == "Clothing") {
-                Clothing* clothing = dynamic_cast<Clothing*>(product);
-                if (clothing != nullptr) {
-                    for (const auto& attribute : inputParams) {
-                        if (clothing->getMaterial() == attribute ||
-                            clothing->getColor() == attribute ||
-                            clothing->getSize() == attribute) {
-                            filtered.push_back(product);
-                            break;
-                        }
-                    }
-                }
+            else if (command == "exit") {
+                return;
             }
             else {
-                cout << "Invalid product type." << endl;
+                cout << "Invalid command" << endl << endl;
             }
         }
-
-        if (filtered.size() == 0) {
-            cout << "There is no product corresponding to your parameters."
-                << endl;
-        }
-        cout << "The products that meet your parameters:" << endl;
-        for (auto& product : filtered) {
-            product->displayDetails();
-            cout << endl;
-        }
     }
+
 };
 
 
