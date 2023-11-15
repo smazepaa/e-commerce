@@ -90,7 +90,7 @@ public:
         Product::displayDetails(); // call base class's function
         cout << "Brand: " << this->brand << endl;
         cout << "Model: " << this->model << endl;
-        cout << "Metrics: " << this->powerConsumption << endl;
+        cout << "Power Consumption: " << this->powerConsumption << endl;
     }
 
     string getBrand() const {
