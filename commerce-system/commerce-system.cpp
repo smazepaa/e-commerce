@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 
@@ -18,7 +19,15 @@ public:
     Product(const int id, const string name, const double price, const int quantity)
         : productId(id), name(name), price(price), quantityInStock(quantity){}
 
-    virtual ~Product() {}  // Add a virtual destructor
+    virtual ~Product() {}
+
+    virtual void displayDetails() const {
+        cout << "ID: " << this->productId << endl;
+        cout << "Name: " << this->name << endl;
+        cout << "Price: " << this->price << endl;
+        cout << "In stock: " << this->quantityInStock << endl;
+        cout << "Additional attributes:" << endl;
+    }
 
     int getId() const {
         return this->productId;
@@ -77,6 +86,13 @@ public:
         : Product(id, name, price, quantity), brand(brand), model(model), 
         powerConsumption(powerConsumption) {}
 
+    void displayDetails() const override {
+        Product::displayDetails(); // call base class's function
+        cout << "Brand: " << this->brand << endl;
+        cout << "Model: " << this->model << endl;
+        cout << "Power Consumption: " << this->powerConsumption << endl;
+    }
+
     string getBrand() const {
         return this->brand;
     }
@@ -127,6 +143,13 @@ public:
         const string author, const string genre, const string isbn)
         : Product(id, name, price, quantity), author(author), genre(genre),
         isbn(isbn) {}
+
+    void displayDetails() const override {
+        Product::displayDetails(); // call base class's function
+        cout << "Author: " << this->author << endl;
+        cout << "Genre: " << this->genre << endl;
+        cout << "ISBN: " << this->isbn << endl;
+    }
 
     string getAuthor() const {
         return this->author;
@@ -179,6 +202,13 @@ public:
         : Product(id, name, price, quantity), size(size), color(color),
         material(material) {}
 
+    void displayDetails() const override {
+        Product::displayDetails(); // call base class's function
+        cout << "Size: " << this->size << endl;
+        cout << "Color: " << this->color << endl;
+        cout << "Material: " << this->material << endl;
+    }
+
     string getSize() const {
         return this->size;
     }
@@ -222,17 +252,6 @@ class ConfigReader {
 
     string filename = "config-input.txt";
 
-    string trim(const string& str)
-    {
-        size_t first = str.find_first_not_of(' ');
-        if (string::npos == first)
-        {
-            return str;
-        }
-        size_t last = str.find_last_not_of(' ');
-        return str.substr(first, (last - first + 1));
-    }
-
 public:
 
     vector<Product*> readConfig() {
@@ -255,7 +274,8 @@ public:
             vector<string> additional;
 
             while (getline(iss, word, ',')) {
-                trim(word);
+
+                word.erase(0, word.find_first_not_of(' '));
                 words.push_back(word);
             }
 
@@ -409,33 +429,8 @@ public:
 
     void viewProducts() const {
         for (const auto& product : productList) {
-            cout << "ID: " << product->getId() << endl;
-            cout << "Name: " << product->getName() << endl;
-            cout << "Price: " << product->getPrice() << endl;
-            cout << "In stock: " << product->getQuantity() << endl;
-            cout << "Additional attributes:" << endl;
             
-            Electronics* electronics = dynamic_cast<Electronics*>(product);
-            if (electronics != nullptr) {
-                cout << "Brand: " << electronics->getBrand() << endl;
-                cout << "Model: " << electronics->getModel() << endl;
-                cout << "Power Consumption: " << electronics->getConsumption() << endl;
-            }
-
-            Books* book = dynamic_cast<Books*>(product);
-            if (book != nullptr) {
-                cout << "Author: " << book->getAuthor() << endl;
-                cout << "Genre: " << book->getGenre() << endl;
-                cout << "ISBN: " << book->getISBN() << endl;
-            }
-
-            // Handle attributes specific to Clothing
-            Clothing* clothing = dynamic_cast<Clothing*>(product);
-            if (clothing != nullptr) {
-                cout << "Size: " << clothing->getSize() << endl;
-                cout << "Color: " << clothing->getColor() << endl;
-                cout << "Material: " << clothing->getMaterial() << endl;
-            }
+            product->displayDetails();
             cout << endl;
         }
     }
@@ -542,7 +537,6 @@ public:
     }
 };
 
-
 class InputConfig {
     ConfigReader reader;
     vector<Product*> products;
@@ -578,10 +572,35 @@ public:
             }
 
             string command = inputParams[0];
+            vector<string> filters;
 
             if (command == "show") {
                 if (inputParams[1] == "all") {
                     catalog.viewProducts();
+                }
+                else {
+                    /*filters.assign(inputParams.begin() + 1, inputParams.end());
+
+                    for (auto& word : filters) {
+                        cout << word << endl;
+                        vector<Product> filtered;
+                        copy_if(products.begin(), products.end(), back_inserter(filtered), {
+                                return p->getName() == word;
+                            });
+                    }*/
+
+                    vector<Product*> filtered;
+                    cout << inputParams[1] << endl;
+                    for (const auto& product : products) {
+                        if (product->getName() == inputParams[1]) {
+                            filtered.push_back(product);
+                        }
+                    }
+                    cout << "filtered:" << endl;
+                    for (auto& product : filtered) {
+                        cout << product->getName() << endl;
+                    }
+
                 }
             }
 
@@ -628,7 +647,8 @@ public:
                 }
                 
                 orderId++;
-                cout << "order created, total: " << order1.calculateTotalCost() << endl;
+                cout << "Order created. Order No. " << orderId <<
+                    endl << "total: " << order1.calculateTotalCost() << endl;
                 orders.push_back(order1);
                 cart.clear();
             }
@@ -648,16 +668,6 @@ int main()
 {
     InputConfig config;
     config.processInput();
-    /*ProductCatalog catalog;
-
-    vector<Product*> prods = catalog.getProducts();
-
-    Order order1(1, "Customer 1");
-    order1.addProduct(prods[0], 2);
-    order1.addProduct(prods[1], 1);
-    order1.addProduct(prods[0], 1);
-
-    cout << "Total cost: " << order1.calculateTotalCost() << endl;*/
 
     return 0;
 }
