@@ -90,7 +90,7 @@ public:
         Product::displayDetails(); // call base class's function
         cout << "Brand: " << this->brand << endl;
         cout << "Model: " << this->model << endl;
-        cout << "Power Consumption: " << this->powerConsumption << endl;
+        cout << "Metrics: " << this->powerConsumption << endl;
     }
 
     string getBrand() const {
@@ -419,8 +419,8 @@ public:
     void removeProduct(int id) {
         for (auto it = productList.begin(); it != productList.end(); ++it) {
             if ((*it)->getId() == id) {
-                delete* it;  // Delete the product
-                productList.erase(it);  // Remove the pointer from the vector
+                delete* it;
+                productList.erase(it);
                 return;
             }
         }
@@ -429,7 +429,6 @@ public:
 
     void viewProducts() const {
         for (const auto& product : productList) {
-            
             product->displayDetails();
             cout << endl;
         }
@@ -579,28 +578,7 @@ public:
                     catalog.viewProducts();
                 }
                 else {
-                    /*filters.assign(inputParams.begin() + 1, inputParams.end());
-
-                    for (auto& word : filters) {
-                        cout << word << endl;
-                        vector<Product> filtered;
-                        copy_if(products.begin(), products.end(), back_inserter(filtered), {
-                                return p->getName() == word;
-                            });
-                    }*/
-
-                    vector<Product*> filtered;
-                    cout << inputParams[1] << endl;
-                    for (const auto& product : products) {
-                        if (product->getName() == inputParams[1]) {
-                            filtered.push_back(product);
-                        }
-                    }
-                    cout << "filtered:" << endl;
-                    for (auto& product : filtered) {
-                        cout << product->getName() << endl;
-                    }
-
+                    showFiltered(inputParams);
                 }
             }
 
@@ -640,6 +618,8 @@ public:
                     continue;
                 }
 
+                cout << "Your cart:" << endl;
+
                 Order order1(orderId);
                 for (const auto& pair : cart) {
                     order1.addProduct(pair.first, pair.second);
@@ -659,6 +639,66 @@ public:
                 }
             }
 
+        }
+    }
+
+    void showFiltered(vector<string>& inputParams) {
+
+        vector<Product*> filtered;
+        string type = inputParams[1];
+        for (const auto& product : products) {
+            if (type == "Electronics") {
+                Electronics* electronics = dynamic_cast<Electronics*>(product);
+                if (electronics != nullptr) {
+                    for (const auto& attribute : inputParams) {
+                        if (electronics->getBrand() == attribute ||
+                            electronics->getModel() == attribute ||
+                            electronics->getConsumption() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (type == "Books") {
+                Books* books = dynamic_cast<Books*>(product);
+                if (books != nullptr) {
+                    for (const auto& attribute : inputParams) {
+                        if (books->getAuthor() == attribute ||
+                            books->getGenre() == attribute ||
+                            books->getISBN() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (type == "Clothing") {
+                Clothing* clothing = dynamic_cast<Clothing*>(product);
+                if (clothing != nullptr) {
+                    for (const auto& attribute : inputParams) {
+                        if (clothing->getMaterial() == attribute ||
+                            clothing->getColor() == attribute ||
+                            clothing->getSize() == attribute) {
+                            filtered.push_back(product);
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                cout << "Invalid product type." << endl;
+            }
+        }
+
+        if (filtered.size() == 0) {
+            cout << "There is no product corresponding to your parameters."
+                << endl;
+        }
+        cout << "The products that meet your parameters:" << endl;
+        for (auto& product : filtered) {
+            product->displayDetails();
+            cout << endl;
         }
     }
 };
