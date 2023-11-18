@@ -540,6 +540,14 @@ class InputConfig {
     map<Product*, int> cart;
     int orderId = 1234;
 
+    void showCommands() {
+        cout << "1. show all" << endl
+            << "2. show <filtered> - based on your parameters (eg show Electronics)" << endl
+            << "3. add to cart - add product by id" << endl
+            << "4. checkout - proceed to creating order" << endl
+            << "5. history - shows previous orders" << endl << endl;
+    }
+
     void showFiltered(vector<string>& inputParams) {
 
         vector<Product*> filtered;
@@ -549,44 +557,65 @@ class InputConfig {
         for (const auto& product : products) {
             if (type == "Electronics") {
                 Electronics* electronics = dynamic_cast<Electronics*>(product);
+
                 if (electronics != nullptr) {
-                    for (const auto& attribute : filterParams) {
-                        if (electronics->getName() == attribute ||
-                            electronics->getBrand() == attribute ||
-                            electronics->getModel() == attribute ||
-                            electronics->getConsumption() == attribute) {
-                            filtered.push_back(product);
-                            break;
+                    if (filterParams.size() == 0) {
+                        filtered.push_back(product);
+                    }
+                    else {
+                        for (const auto& attribute : filterParams) {
+                            if (electronics->getName() == attribute ||
+                                electronics->getBrand() == attribute ||
+                                electronics->getModel() == attribute ||
+                                electronics->getConsumption() == attribute) {
+                                filtered.push_back(product);
+                                break;
+                            }
                         }
                     }
                 }
             }
+
             else if (type == "Books") {
                 Books* books = dynamic_cast<Books*>(product);
+
                 if (books != nullptr) {
-                    for (const auto& attribute : filterParams) {
-                        if (books->getName() == attribute ||
-                            books->getAuthor() == attribute ||
-                            books->getGenre() == attribute ||
-                            books->getISBN() == attribute) {
-                            filtered.push_back(product);
-                            break;
+                    if (filterParams.size() == 0) {
+                        filtered.push_back(product);
+                    }
+                    else {
+                        for (const auto& attribute : filterParams) {
+                            if (books->getName() == attribute ||
+                                books->getAuthor() == attribute ||
+                                books->getGenre() == attribute ||
+                                books->getISBN() == attribute) {
+                                filtered.push_back(product);
+                                break;
+                            }
                         }
                     }
+                    
                 }
             }
-            else if (type == "Clothing") {
+            else if (type == "Clothing") {                
                 Clothing* clothing = dynamic_cast<Clothing*>(product);
+
                 if (clothing != nullptr) {
-                    for (const auto& attribute : filterParams) {
-                        if (clothing->getName() == attribute ||
-                            clothing->getMaterial() == attribute ||
-                            clothing->getColor() == attribute ||
-                            clothing->getSize() == attribute) {
-                            filtered.push_back(product);
-                            break;
+                    if (filterParams.size() == 0) {
+                        filtered.push_back(product);
+                    }
+                    else {
+                        for (const auto& attribute : filterParams) {
+                            if (clothing->getName() == attribute ||
+                                clothing->getMaterial() == attribute ||
+                                clothing->getColor() == attribute ||
+                                clothing->getSize() == attribute) {
+                                filtered.push_back(product);
+                                break;
+                            }
                         }
                     }
+                    
                 }
             }
             else {
@@ -703,6 +732,7 @@ public:
         Inventory inventory(products);
         ProductCatalog catalog(products);
 
+        showCommands();
         while (true) {
             string inputline;
             
