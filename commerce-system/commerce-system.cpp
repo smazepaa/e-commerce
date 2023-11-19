@@ -5,74 +5,9 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include "Product.h"
 
 using namespace std;
-
-class Product {
-
-    int productId;
-    string name;
-    double price;
-    int quantityInStock;
-
-public:
-    Product(const int id, const string name, const double price, const int quantity)
-        : productId(id), name(name), price(price), quantityInStock(quantity){}
-
-    virtual ~Product() {}
-
-    virtual void displayDetails() const {
-        cout << "ID: " << this->productId << endl;
-        cout << "Name: " << this->name << endl;
-        cout << "Price: " << this->price << endl;
-        cout << "In stock: " << this->quantityInStock << endl;
-        cout << "Additional attributes:" << endl;
-    }
-
-    int getId() const {
-        return this->productId;
-    }
-
-    string getName() const {
-        return this->name;
-    }
-
-    double getPrice() const {
-        return this->price;
-    }
-
-    int getQuantity() const {
-        return this->quantityInStock;
-    }
-
-    void updateName(const string newName) {
-        this->name = newName;
-    }
-
-    void updatePrice(const double newPrice) {
-        this->price = newPrice;
-    }
-
-    void updateQuantity(const int newQuantity) {
-        this->quantityInStock = newQuantity;
-    }
-
-    // Copy constructor
-    Product(const Product& other)
-        : productId(other.productId), name(other.name), 
-        price(other.price), quantityInStock(other.quantityInStock) {}
-
-    // Move constructor
-    Product(Product&& other) noexcept
-        : productId(move(other.productId)), name(move(other.name)),
-        price(move(other.price)), quantityInStock(move(other.quantityInStock)) {
-
-        other.productId = 0;
-        other.name = "";
-        other.price = 0;
-        other.quantityInStock = 0;
-    }
-};
 
 class Electronics : public Product {
     string brand;
@@ -81,8 +16,8 @@ class Electronics : public Product {
 
 public:
 
-    Electronics(const int id, const string name, const double price, const int quantity,
-        const string brand, const string model, const string powerConsumption)
+    Electronics(const int id, const string& name, const double price, const int quantity,
+        const string& brand, const string& model, const string& powerConsumption)
         : Product(id, name, price, quantity), brand(brand), model(model), 
         powerConsumption(powerConsumption) {}
 
@@ -105,15 +40,15 @@ public:
         return this->powerConsumption;
     }
 
-    void updateBrand(const string newBrand) {
+    void updateBrand(const string& newBrand) {
         this->brand = newBrand;
     }
 
-    void updateModel(const string newModel) {
+    void updateModel(const string& newModel) {
         this->model = newModel;
     }
 
-    void updateConsumption(const string newConsumption) {
+    void updateConsumption(const string& newConsumption) {
         this->powerConsumption = newConsumption;
     }
 
@@ -139,8 +74,8 @@ class Books : public Product {
 
 public:
 
-    Books(const int id, const string name, const double price, const int quantity,
-        const string author, const string genre, const string isbn)
+    Books(const int id, const string& name, const double& price, const int& quantity,
+        const string& author, const string& genre, const string& isbn)
         : Product(id, name, price, quantity), author(author), genre(genre),
         isbn(isbn) {}
 
@@ -163,15 +98,15 @@ public:
         return this->isbn;
     }
 
-    void updateAuthor(const string newAuthor) {
+    void updateAuthor(const string& newAuthor) {
         this->author = newAuthor;
     }
 
-    void updateGenre(const string newGenre) {
+    void updateGenre(const string& newGenre) {
         this->genre = newGenre;
     }
 
-    void updateISBN(const string newISBN) {
+    void updateISBN(const string& newISBN) {
         this->isbn = newISBN;
     }
 
@@ -197,8 +132,8 @@ class Clothing : public Product {
 
 public:
 
-    Clothing(const int id, const string name, const double price, const int quantity,
-        const string size, const string color, const string material)
+    Clothing(const int id, const string& name, const double price, const int quantity,
+        const string& size, const string& color, const string& material)
         : Product(id, name, price, quantity), size(size), color(color),
         material(material) {}
 
@@ -221,15 +156,15 @@ public:
         return this->material;
     }
 
-    void updateSize(const string newSize) {
+    void updateSize(const string& newSize) {
         this->size = newSize;
     }
 
-    void updateColor(const string newColor) {
+    void updateColor(const string& newColor) {
         this->color = newColor;
     }
 
-    void updateMaterial(const string newMaterial) {
+    void updateMaterial(const string& newMaterial) {
         this->material = newMaterial;
     }
 
@@ -279,17 +214,17 @@ public:
                 words.push_back(word);
             }
 
-            string type = words[0];
-            string name = words[1];
-            double price = stod(words[2]);
-            int quantity = stoi(words[3]);
+            string type = move(words[0]);
+            string name = move(words[1]);
+            double price = move(stod(words[2]));
+            int quantity = move(stoi(words[3]));
 
             additional.assign(words.begin() + 4, words.end());
 
             if (type == "Electronics") {
-                string brand = additional[0];
-                string model = additional[1];
-                string consumption = additional[2];
+                string brand = move(additional[0]);
+                string model = move(additional[1]);
+                string consumption = move(additional[2]);
 
                 Electronics* electronic = new Electronics(id, name,
                     price, quantity, brand, model, consumption);
@@ -298,9 +233,9 @@ public:
             }
 
             else if (type == "Books") {
-                string author = additional[0];
-                string genre = additional[1];
-                string isbn = additional[2];
+                string author = move(additional[0]);
+                string genre = move(additional[1]);
+                string isbn = move(additional[2]);
 
                 Books* book = new Books(id, name, price, quantity, author, genre, isbn);
                 products.push_back(book);
@@ -308,9 +243,9 @@ public:
             }
 
             else if (type == "Clothing") {
-                string size = additional[0];
-                string color = additional[1];
-                string material = additional[2];
+                string size = move(additional[0]);
+                string color = move(additional[1]);
+                string material = move(additional[2]);
 
                 Clothing* cloth = new Clothing(id, name,
                     price, quantity, size, color, material);
@@ -344,7 +279,7 @@ public:
         productList.push_back(product);
     }
 
-    void updateProduct(int id, string attribute, string newValue) {
+    void updateProduct(int id, string& attribute, string& newValue) {
         for (auto& product : productList) {
             if (product->getId() == id) {
                 if (attribute == "name") {
@@ -443,7 +378,7 @@ class Order {
     string orderStatus;
 
 public:
-    Order(const int id, const string customer)
+    Order(const int id, const string& customer)
         : orderID(id), customer(customer), totalCost(0.0), orderStatus("Created") {}
 
     void addProduct(Product* product, int quantity) {
@@ -466,7 +401,7 @@ public:
         return this->totalCost;
     }
 
-    void changeOrderStatus(const string newStatus) {
+    void changeOrderStatus(const string& newStatus) {
         this->orderStatus = newStatus;
     }
 
@@ -551,7 +486,7 @@ class InputConfig {
     void showFiltered(vector<string>& inputParams) {
 
         vector<Product*> filtered;
-        string type = inputParams[1];
+        string type = move(inputParams[1]);
         vector<string> filterParams;
         filterParams.assign(inputParams.begin() + 2, inputParams.end());
         for (const auto& product : products) {
@@ -657,8 +592,8 @@ class InputConfig {
             return;
         }
 
-        int id = stoi(toCart[0]);
-        int quantity = stoi(toCart[1]);
+        int id = move(stoi(toCart[0]));
+        int quantity = move(stoi(toCart[1]));
 
         bool prodExists = false;
         for (Product* product : products) {
@@ -728,7 +663,7 @@ public:
 
     void processInput() {
 
-        products = reader.readConfig();
+        products = move(reader.readConfig());
         Inventory inventory(products);
         ProductCatalog catalog(products);
 
@@ -751,7 +686,7 @@ public:
                 continue;
             }
 
-            string command = inputParams[0];
+            string command = move(inputParams[0]);
             vector<string> filters;
 
             if (command == "show") {
@@ -789,7 +724,6 @@ public:
     }
 
 };
-
 
 int main()
 {
